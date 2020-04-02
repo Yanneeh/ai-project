@@ -1,0 +1,1 @@
+pip install Flask && pip install pymongo && pip install flask-restful && pip install python-dotenv && pip install requests
