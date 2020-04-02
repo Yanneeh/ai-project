@@ -2,11 +2,10 @@ from flask import Flask, redirect, url_for, jsonify
 import os
 from dotenv import load_dotenv
 from dbsetup import db
+from func import *
 
-app = Flask('api')
-
-def remove_tuple(t):
-    return str(t[0])
+app = Flask(__name__)
+app.secret_key = os.urandom(16)
 
 @app.route('/category/<string:product_id>/<int:count>')
 def category(product_id, count):
