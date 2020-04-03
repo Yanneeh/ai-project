@@ -26,13 +26,13 @@ def category(product_id, count):
         ORDER BY RANDOM();
     """, (category,))
 
-    product_ids = list(map(remove_tuple, cur.fetchmany(count)))
+    product_ids = fetch_amount(cur, count)
 
     cur.close()
 
     return jsonify(product_ids)
 
-@app.route('/profile/<string:profile_id>/<int:count>')
+@app.route('/personal/<string:profile_id>/<int:count>')
 def profile(profile_id, count):
     cur = db.cursor()
 
@@ -42,14 +42,32 @@ def profile(profile_id, count):
         ORDER BY RANDOM();
     """)
 
-    product_ids = list(map(remove_tuple, cur.fetchmany(count)))
+    product_ids = fetch_amount(cur, count)
 
     cur.close()
 
     return jsonify(product_ids)
 
-@app.route('/others_bought/<string:product_id>/<int:count>')
+@app.route('/popular/<string:product_id>/<int:count>')
 def others(product_id, count):
-    pass
+    cur = db.cursor()
+
+    cur.execute("""
+        select product_id
+        from
+        (select distinct product_id
+        from orders
+        where session_id in
+        (select session_id
+        from orders
+        where product_id = %s) and product_id != %s) as id
+        order by random();
+    """, (product_id, product_id))
+
+    product_ids = fetch_amount(cur, count)
+
+    cur.close()
+
+    return jsonify(product_ids)
 
 app.run(host='0.0.0.0', debug=True, port=5001)
