@@ -248,7 +248,7 @@ class HUWebshop(object):
         return []
 
     def popular_recommendation(self, product_id, count):
-        resp = requests.get(self.recseraddress+"/popular/"+product_id+"/"+str(count))
+        resp = requests.get(self.recseraddress+"/others_bougth/"+product_id+"/"+str(count))
         if resp.status_code == 200:
             recs = eval(resp.content.decode())
             queryfilter = {"_id": {"$in": recs}}
