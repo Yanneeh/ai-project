@@ -1,10 +1,12 @@
 from dotenv import load_dotenv, find_dotenv
 import psycopg2
+import os
+
 
 def export_csv(db, filename, tablename):
     cur = db.cursor()
 
-    f = open(filename, 'r')
+    f = open(filename, 'r', encoding='utf-8')
 
     copy = f""" COPY {tablename} FROM stdin WITH CSV HEADER
             DELIMITER as ','"""
@@ -36,10 +38,8 @@ db = psycopg2.connect(dbname=os.getenv("DBNAME"), user=os.getenv("DBUSER"), pass
 
 export_orders(db)
 export_profiles(db)
-export_orders(db)
+export_products(db)
 export_sessions(db)
 export_recommended(db)
 
 db.close()
-
-#test2

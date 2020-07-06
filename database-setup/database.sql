@@ -50,7 +50,6 @@ CREATE TABLE sessions (
 	browser_name VARCHAR(255),
 	os_name VARCHAR(255),
 	is_mobile_flag boolean,
-	is_pc_flag boolean,
 	is_tablet_flag boolean,
 	is_email_flag boolean,
 	device_family VARCHAR(255)
