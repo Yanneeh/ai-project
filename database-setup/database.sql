@@ -79,3 +79,13 @@ LIMIT 5;
 	WHERE session_id = '<session_id>' AND product_id != '<product_id>'
 	ORDER BY RANDOM()
 	LIMIT 1;
+
+-- Business rule #3
+SELECT product_id FROM
+	(SELECT product_id FROM
+	 orders WHERE session_id IN
+		(SELECT session_id FROM orders
+		WHERE product_id = '38815')
+	AND product_id != '38815')
+AS id GROUP BY product_id
+ORDER BY COUNT(*) DESC;

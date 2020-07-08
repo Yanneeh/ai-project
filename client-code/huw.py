@@ -247,8 +247,18 @@ class HUWebshop(object):
             return resultlist
         return []
 
-    def popular_recommendation(self, product_id, count):
+    def others_recommendation(self, product_id, count):
         resp = requests.get(self.recseraddress+"/others_bougth/"+product_id+"/"+str(count))
+        if resp.status_code == 200:
+            recs = eval(resp.content.decode())
+            queryfilter = {"_id": {"$in": recs}}
+            querycursor = self.database.products.find(queryfilter, self.productfields)
+            resultlist = list(map(self.prepproduct, list(querycursor)))
+            return resultlist
+        return []
+
+    def most_recommendation(self, product_id, count):
+        resp = requests.get(self.recseraddress+"/most/"+product_id+"/"+str(count))
         if resp.status_code == 200:
             recs = eval(resp.content.decode())
             queryfilter = {"_id": {"$in": recs}}
@@ -288,9 +298,9 @@ class HUWebshop(object):
             'pend': skipindex + session['items_per_page'] if session['items_per_page'] > 0 else prodcount, \
             'prevpage': pagepath+str(page-1) if (page > 1) else False, \
             'nextpage': pagepath+str(page+1) if (session['items_per_page']*page < prodcount) else False, \
-            'r_products':self.category_recommendation(prodlist[0]['id'], 4), \
-            'r_type':list(self.recommendationtypes.keys())[1],\
-            'r_string':list(self.recommendationtypes.values())[1]\
+            'r_products':self.others_recommendation(prodlist[0]['id'], 4), \
+            'r_type':list(self.recommendationtypes.keys())[0],\
+            'r_string':list(self.recommendationtypes.values())[0]\
             })
 
     def productdetail(self, productid):
@@ -299,7 +309,7 @@ class HUWebshop(object):
         product = self.database.products.find_one({"_id":str(productid)})
         return self.renderpackettemplate('productdetail.html', {'product':product,\
             'prepproduct':self.prepproduct(product),\
-            'r_products':self.popular_recommendation(productid,4), \
+            'r_products':self.others_recommendation(productid,4), \
             'r_type':list(self.recommendationtypes.keys())[0],\
             'r_string':list(self.recommendationtypes.values())[0]})
 

@@ -11,6 +11,7 @@ app.secret_key = os.urandom(16)
 @app.route('/category/<string:product_id>/<int:count>')
 def category(product_id, count):
     cur = db.cursor()
+    print(product_id)
 
     # Vind de categorie die bij het product id hoort.
     cur.execute("""
@@ -21,14 +22,14 @@ def category(product_id, count):
 
     category = remove_tuple(cur.fetchone())
 
-    # Vind n aantal producten die de categorie uit de vorige query hebben en randomize de uitkomst.
+    # Vind een aantal producten die de categorie uit de vorige query hebben en randomize de uitkomst.
     cur.execute("""
         SELECT *
         FROM products
         WHERE category = %s
         ORDER BY RANDOM();
     """, (category,))
-
+    print(category)
     product_ids = fetch_amount(cur, count)
 
     cur.close()
@@ -57,7 +58,7 @@ def profile(profile_id, count):
 @app.route('/others_bougth/<string:product_id>/<int:count>')
 def others(product_id, count):
     cur = db.cursor()
-
+    print(product_id)
     # De query die producten selecteert die in het verleden vaker dan 10 keer samen zijn gekocht.
     cur.execute("""
         select product_id
@@ -70,8 +71,7 @@ def others(product_id, count):
 		           where product_id = %s)
 	        and product_id != %s) as id
         group by product_id
-        having count(id) > 10
-        order by random();
+        order by count(*) DESC;
     """, (product_id, product_id))
 
     # Fetch een n aantal ids op basis van count die meegestuurd is.
@@ -81,5 +81,9 @@ def others(product_id, count):
 
     # Product ids worden teruggestuurd.
     return jsonify(product_ids)
+
+"""
+@app.route('')
+"""
 
 app.run(host='0.0.0.0', debug=True, port=5001)
