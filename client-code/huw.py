@@ -33,7 +33,7 @@ class HUWebshop(object):
 
     productfields = ["name", "price.selling_price", "properties.discount", "images"]
 
-    recommendationtypes = {'popular':"Anderen kochten ook",'similar':"Soortgelijke producten",'combination':'Combineert goed met','behaviour':'Passend bij uw gedrag','personal':'Persoonlijk aanbevolen'}
+    recommendationtypes = {'popular':"Populair in deze categorie",'similar':"Soortgelijke producten",'combination':'Combineert goed met','behaviour':'Passend bij uw gedrag','personal':'Persoonlijk aanbevolen'}
 
     """ ..:: Initialization and Category Index Functions ::.. """
 
@@ -257,8 +257,8 @@ class HUWebshop(object):
             return resultlist
         return []
 
-    def most_recommendation(self, product_id, count):
-        resp = requests.get(self.recseraddress+"/most/"+product_id+"/"+str(count))
+    def most_recommendation(self, this_category, cat_count, count):
+        resp = requests.get(self.recseraddress+"/most/"+this_category+"/"+str(cat_count)+"/"+str(count))
         if resp.status_code == 200:
             recs = eval(resp.content.decode())
             queryfilter = {"_id": {"$in": recs}}
@@ -292,13 +292,24 @@ class HUWebshop(object):
             pagepath = "/producten/"+("/".join(nononescats))+"/"
         else:
             pagepath = "/producten/"
+
+        f = open("test.txt", "a")
+        f.write(str(catlist))
+        this_category = ''
+        for i in catlist:
+            if i is not None:
+                this_category = i
+        cat_count = catlist.index(this_category)
+        f.write(this_category)
+        f.close()
+
         return self.renderpackettemplate('products.html', {'products': prodlist, \
             'productcount': prodcount, \
             'pstart': skipindex + 1, \
             'pend': skipindex + session['items_per_page'] if session['items_per_page'] > 0 else prodcount, \
             'prevpage': pagepath+str(page-1) if (page > 1) else False, \
             'nextpage': pagepath+str(page+1) if (session['items_per_page']*page < prodcount) else False, \
-            'r_products':self.others_recommendation(prodlist[0]['id'], 4), \
+            'r_products':self.most_recommendation(this_category, cat_count, 4), \
             'r_type':list(self.recommendationtypes.keys())[0],\
             'r_string':list(self.recommendationtypes.values())[0]\
             })
@@ -310,8 +321,8 @@ class HUWebshop(object):
         return self.renderpackettemplate('productdetail.html', {'product':product,\
             'prepproduct':self.prepproduct(product),\
             'r_products':self.others_recommendation(productid,4), \
-            'r_type':list(self.recommendationtypes.keys())[0],\
-            'r_string':list(self.recommendationtypes.values())[0]})
+            'r_type':list(self.recommendationtypes.keys())[2],\
+            'r_string':list(self.recommendationtypes.values())[2]})
 
     def shoppingcart(self):
         """ This function renders the shopping cart for the user."""

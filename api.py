@@ -11,7 +11,6 @@ app.secret_key = os.urandom(16)
 @app.route('/category/<string:product_id>/<int:count>')
 def category(product_id, count):
     cur = db.cursor()
-    print(product_id)
 
     # Vind de categorie die bij het product id hoort.
     cur.execute("""
@@ -29,7 +28,6 @@ def category(product_id, count):
         WHERE category = %s
         ORDER BY RANDOM();
     """, (category,))
-    print(category)
     product_ids = fetch_amount(cur, count)
 
     cur.close()
@@ -58,7 +56,6 @@ def profile(profile_id, count):
 @app.route('/others_bougth/<string:product_id>/<int:count>')
 def others(product_id, count):
     cur = db.cursor()
-    print(product_id)
     # De query die producten selecteert die in het verleden vaker dan 10 keer samen zijn gekocht.
     cur.execute("""
         select product_id
@@ -71,7 +68,7 @@ def others(product_id, count):
 		           where product_id = %s)
 	        and product_id != %s) as id
         group by product_id
-        order by count(*) DESC;
+        order by count(*) desc;
     """, (product_id, product_id))
 
     # Fetch een n aantal ids op basis van count die meegestuurd is.
@@ -82,8 +79,51 @@ def others(product_id, count):
     # Product ids worden teruggestuurd.
     return jsonify(product_ids)
 
-"""
-@app.route('')
-"""
+@app.route('/most/<string:this_category>/<int:cat_count>/<int:count>')
+def most(this_category, cat_count, count):
+    cur = db.cursor()
+
+    this_category = this_category.replace('-en-', ' & ')
+    this_category = this_category.replace('-', ' ')
+    this_category = this_category.capitalize()
+
+    categories = ['category', 'sub_category', 'sub_sub_category', 'sub_sub_sub_category']
+
+    if categories[cat_count] == 'category':
+        cur.execute("""
+            select product_id from
+                (select product_id from
+                orders where session_id in
+                    (select session_id from orders
+                    where product_id in
+                        (select id from products where
+                        category = %s)
+                    )
+                )
+            as id group by product_id
+            order by count(*) desc;
+        """, (this_category,))
+    elif categories[cat_count] == 'sub_category':
+        cur.execute("""
+                    select product_id from
+                        (select product_id from
+                        orders where session_id in
+                            (select session_id from orders
+                            where product_id in
+                                (select id from products where
+                                sub_category = %s)
+                            )
+                        )
+                    as id group by product_id
+                    order by count(*) desc;
+                """, (this_category,))
+
+    # Fetch een n aantal ids op basis van count die meegestuurd is.
+    product_ids = fetch_amount(cur, count)
+
+    cur.close()
+
+    # Product ids worden teruggestuurd.
+    return jsonify(product_ids)
 
 app.run(host='0.0.0.0', debug=True, port=5001)
