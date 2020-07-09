@@ -258,7 +258,17 @@ class HUWebshop(object):
         return []
 
     def most_recommendation(self, this_category, cat_count, count):
-        resp = requests.get(self.recseraddress+"/most/"+this_category+"/"+str(cat_count)+"/"+str(count))
+        resp = requests.get(self.recseraddress+"/most/"+this_category+"/"+str(count))
+        if resp.status_code == 200:
+            recs = eval(resp.content.decode())
+            queryfilter = {"_id": {"$in": recs}}
+            querycursor = self.database.products.find(queryfilter, self.productfields)
+            resultlist = list(map(self.prepproduct, list(querycursor)))
+            return resultlist
+        return []
+
+    def others_recommendation_cart(self, product_id, count):
+        resp = requests.get(self.recseraddress+"/others_bougth/"+product_id+"/"+str(count))
         if resp.status_code == 200:
             recs = eval(resp.content.decode())
             queryfilter = {"_id": {"$in": recs}}
@@ -331,6 +341,9 @@ class HUWebshop(object):
             product = self.prepproduct(self.database.products.find_one({"_id":str(tup[0])}))
             product["itemcount"] = tup[1]
             i.append(product)
+        f = open("test3", "a")
+        f.write(str(i))
+        f.close()
         return self.renderpackettemplate('shoppingcart.html',{'itemsincart':i,\
             'r_products':self.personal_recommendation(4), \
             'r_type':list(self.recommendationtypes.keys())[2],\
