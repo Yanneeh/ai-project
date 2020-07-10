@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from dbsetup import db
 from func import *
+import ast
 
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
@@ -79,8 +80,10 @@ def others(product_id, count):
     # Product ids worden teruggestuurd.
     return jsonify(product_ids)
 
-@app.route('/others_bougth/<int:count>')
-def others_cart(product_id, count):
+@app.route('/others_bougth_cart/<string:product_ids>/<int:count>')
+def others_cart(product_ids, count):
+    ids = ast.literal_eval(product_ids)
+    ids = tuple(ids)
 
     cur = db.cursor()
     # De query die producten selecteert die in het verleden vaker dan 10 keer samen zijn gekocht.
@@ -92,11 +95,11 @@ def others_cart(product_id, count):
 	        where session_id in
 		          (select session_id
 		           from orders
-		           where product_id = %s)
-	        and product_id != %s) as id
+		           where product_id in %s)
+	        and product_id not in %s) as id
         group by product_id
         order by count(*) desc;
-    """, (product_id, product_id))
+    """, (ids, ids))
 
     # Fetch een n aantal ids op basis van count die meegestuurd is.
     product_ids = fetch_amount(cur, count)
