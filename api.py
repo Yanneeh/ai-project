@@ -119,6 +119,10 @@ def most(this_category, cat_count, count):
 
     categories = ['category', 'sub_category', 'sub_sub_category', 'sub_sub_sub_category']
 
+    f = open("test4.txt", "w")
+    f.write(this_category)
+    f.close()
+
     if categories[cat_count] == 'category':
         cur.execute("""
             select product_id from

@@ -258,7 +258,7 @@ class HUWebshop(object):
         return []
 
     def most_recommendation(self, this_category, cat_count, count):
-        resp = requests.get(self.recseraddress+"/most/"+this_category+"/"+str(count))
+        resp = requests.get(self.recseraddress+"/most/"+this_category+"/"+str(cat_count)+"/"+str(count))
         if resp.status_code == 200:
             recs = eval(resp.content.decode())
             queryfilter = {"_id": {"$in": recs}}
