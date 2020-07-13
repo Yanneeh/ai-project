@@ -277,6 +277,16 @@ class HUWebshop(object):
             return resultlist
         return []
 
+    def product_recommendation(self, product, count):
+        resp = requests.get(self.recseraddress+"/product/"+product+"/"+str(count))
+        if resp.status_code == 200:
+            recs = eval(resp.content.decode())
+            queryfilter = {"_id": {"$in": recs}}
+            querycursor = self.database.products.find(queryfilter, self.productfields)
+            resultlist = list(map(self.prepproduct, list(querycursor)))
+            return resultlist
+        return []
+
     """ ..:: Full Page Endpoints ::.. """
 
     def productpage(self, cat1=None, cat2=None, cat3=None, cat4=None, page=1):
@@ -328,11 +338,15 @@ class HUWebshop(object):
         """ This function renders the product detail page based on the product
         id provided. """
         product = self.database.products.find_one({"_id":str(productid)})
+
+        prod = [product.get('_id'), product.get('gender'), product.get('category'), product.get('sub_category'),
+                product.get('sub_sub_category'), product.get('brand')]
+
         return self.renderpackettemplate('productdetail.html', {'product':product,\
             'prepproduct':self.prepproduct(product),\
-            'r_products':self.others_recommendation(productid,4), \
-            'r_type':list(self.recommendationtypes.keys())[2],\
-            'r_string':list(self.recommendationtypes.values())[2]})
+            'r_products':self.product_recommendation(str(prod), 4), \
+            'r_type':list(self.recommendationtypes.keys())[1],\
+            'r_string':list(self.recommendationtypes.values())[1]})
 
     def shoppingcart(self):
         """ This function renders the shopping cart for the user."""

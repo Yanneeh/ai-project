@@ -89,3 +89,31 @@ SELECT product_id FROM
 	AND product_id != '38815')
 AS id GROUP BY product_id
 ORDER BY COUNT(*) DESC;
+
+-- Business rule #4
+SELECT product_id FROM
+	(SELECT product_id FROM
+	 orders WHERE session_id IN
+		(SELECT session_id FROM orders
+		WHERE product_id IN ('38815', '29438', '42914'))
+	AND product_id NOT IN ('38815', '29438', '42914'))
+AS id GROUP BY product_id
+ORDER BY COUNT(*) DESC;
+
+-- Business rule #5
+SELECT id FROM(
+    SELECT id,
+    (gender + cat + subcat + subsubcat + brand) as Total FROM
+    	(SELECT id,
+    		sum(case when gender like 'Man%' then 1 else 0 end) AS gender,
+    		sum(case when category = 'Gezond & verzorging' then 1 else 0 end) as cat,
+    		sum(case when sub_category = 'Persoonlijke hygiene' then 1 else 0 end) as subcat,
+    		sum(case when sub_sub_category = 'Inlegkruisjes' then 1 else 0 end) as subsubcat,
+    		sum(case when brand = '8x4' then 1 else 0 end) as brand
+    	FROM products
+    	WHERE id != '44444'
+    	GROUP by id)
+    as id
+    ORDER BY Total DESC)
+as id;
+

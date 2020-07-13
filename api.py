@@ -160,4 +160,34 @@ def most(this_category, cat_count, count):
     # Product ids worden teruggestuurd.
     return jsonify(product_ids)
 
+@app.route('/product/<string:product>/<int:count>')
+def product(product, count):
+
+    this_product = ast.literal_eval(product)
+
+    cur = db.cursor()
+
+    cur.execute("""
+    select id from(
+        select id, (gender + cat + subcat + subsubcat + brand) as Total from
+            (select id,
+                sum(case when gender like %s then 1 else 0 end) AS gender,
+	    	    sum(case when category = %s then 1 else 0 end) as cat,
+	    	    sum(case when sub_category = %s then 1 else 0 end) as subcat,
+	    	    sum(case when sub_sub_category = %s then 1 else 0 end) as subsubcat,
+	    	    sum(case when brand = %s then 1 else 0 end) as brand
+	        from products
+	        where id != %s
+	        group by id)
+	    as id
+	    order by Total desc)
+	as id;
+    """, (this_product[1], this_product[2], this_product[3], this_product[4], this_product[5], this_product[0]))
+
+    product_ids = fetch_amount(cur, count)
+
+    cur.close()
+
+    return jsonify(product_ids)
+
 app.run(host='0.0.0.0', debug=True, port=5001)
