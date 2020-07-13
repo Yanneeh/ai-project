@@ -293,6 +293,7 @@ class HUWebshop(object):
         """ This function renders the product page template with the products it
         can retrieve from the database, based on the URL path provided (which
         corresponds to product categories). """
+
         catlist = [cat1, cat2, cat3, cat4]
         queryfilter = {}
         nononescats = []
@@ -313,15 +314,11 @@ class HUWebshop(object):
         else:
             pagepath = "/producten/"
 
-        f = open("test.txt", "a")
-        f.write(str(catlist))
         this_category = ''
         for i in catlist:
             if i is not None:
-                this_category = i
-        cat_count = catlist.index(this_category)
-        f.write(this_category)
-        f.close()
+                this_category = self.catdecode[i]
+        cat_count = len(nononescats)-1
 
         return self.renderpackettemplate('products.html', {'products': prodlist, \
             'productcount': prodcount, \
@@ -361,9 +358,6 @@ class HUWebshop(object):
             _id = prod.get("id")
             ids.append(_id)
 
-        f = open("test3", "a")
-        f.write(str(i))
-        f.close()
         return self.renderpackettemplate('shoppingcart.html',{'itemsincart':i,\
             'r_products':self.others_recommendation_cart(str(ids), 4), \
             'r_type':list(self.recommendationtypes.keys())[2],\
